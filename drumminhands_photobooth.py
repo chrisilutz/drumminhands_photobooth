@@ -27,6 +27,7 @@ led1_pin = 15 # LED 1
 led2_pin = 19 # LED 2
 led3_pin = 21 # LED 3
 led4_pin = 23 # LED 4
+led5_pin = 27 # LED 4
 button1_pin = 22 # pin for the big red button
 button2_pin = 18 # pin for button to shutdown the pi
 button3_pin = 16 # pin for button to end the program, but not shutdown the pi
@@ -136,6 +137,7 @@ def display_pics(jpg_group):
 def start_photobooth():
     ################################# Begin Step 1 #################################
     print "Get Ready"
+    GPIO.output(led5_pin,True) # Lights on during shoot
     camera = picamera.PiCamera()
     camera.resolution = (500, 375) #use a smaller size to process faster, and tumblr will only take up to 500 pixels wide for animated gifs
     camera.vflip = True
@@ -161,6 +163,7 @@ def start_photobooth():
     finally:
         camera.stop_preview()
         camera.close()
+        GPIO.output(led5_pin,False) # Lights out after shoot
     ########################### Begin Step 3 #################################
     print "Creating an animated gif"
     GPIO.output(led3_pin,True) #turn on the LED
