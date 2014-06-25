@@ -3,7 +3,6 @@
 # see instructions at http://www.drumminhands.com/2014/06/15/raspberry-pi-photo-booth/
 
 import os
-import glob
 import time
 from time import sleep
 import RPi.GPIO as GPIO
@@ -27,7 +26,7 @@ led1_pin = 15 # LED 1
 led2_pin = 19 # LED 2
 led3_pin = 21 # LED 3
 led4_pin = 23 # LED 4
-led5_pin = 27 # LED 4
+led5_pin = 11 # LED 5
 button1_pin = 22 # pin for the big red button
 button2_pin = 18 # pin for button to shutdown the pi
 button3_pin = 16 # pin for button to end the program, but not shutdown the pi
@@ -85,6 +84,7 @@ def shut_it_down(channel):
     GPIO.output(led2_pin,True);
     GPIO.output(led3_pin,True);
     GPIO.output(led4_pin,True);
+    GPIO.output(led5_pin,True);
     time.sleep(3)
     os.system("sudo halt")
 
@@ -142,7 +142,7 @@ def start_photobooth():
     camera.resolution = (500, 375) #use a smaller size to process faster, and tumblr will only take up to 500 pixels wide for animated gifs
     camera.vflip = True
     camera.hflip = True
-    camera.saturation = 0
+    camera.saturation = -20
     camera.start_preview()
     i=1 #iterate the blink of the light in prep, also gives a little time for the camera to warm up
     while i < prep_delay :
@@ -219,11 +219,6 @@ def start_photobooth():
 # else is happening in the program, their function will be run
 GPIO.add_event_detect(button2_pin, GPIO.FALLING, callback=shut_it_down, bouncetime=300)
 GPIO.add_event_detect(button3_pin, GPIO.FALLING, callback=exit_photobooth, bouncetime=300)
-
-# delete files in folder on startup
-files = glob.glob(file_path + '*')
-for f in files:
-    os.remove(f)
 
 print "Photo booth app running..."
 GPIO.output(led1_pin,True); #light up the lights to show the app is running at the beginning
