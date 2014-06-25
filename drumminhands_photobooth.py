@@ -123,89 +123,89 @@ def display_pics(jpg_group):
     pygame.display.set_caption('Photo Booth Pics')
     pygame.mouse.set_visible(False) #hide the mouse cursor
     for i in range(0, replay_cycles): #show pics a few times
-		for i in range(1, total_pics+1): #show each pic
-			filename = file_path + jpg_group + "-0" + str(i) + ".jpg"
-			img=pygame.image.load(filename)
-			img = pygame.transform.scale(img,(transform_x,transfrom_y))
-			screen.blit(img,(offset_x,offset_y))
-			pygame.display.flip() # update the display
-			time.sleep(replay_delay) # pause
+        for i in range(1, total_pics+1): #show each pic
+            filename = file_path + jpg_group + "-0" + str(i) + ".jpg"
+            img=pygame.image.load(filename)
+            img = pygame.transform.scale(img,(transform_x,transfrom_y))
+            screen.blit(img,(offset_x,offset_y))
+            pygame.display.flip() # update the display
+            time.sleep(replay_delay) # pause
 
 # define the photo taking function for when the big button is pressed
 def start_photobooth():
-	################################# Begin Step 1 #################################
-	print "Get Ready"
-	camera = picamera.PiCamera()
-	camera.resolution = (500, 375) #use a smaller size to process faster, and tumblr will only take up to 500 pixels wide for animated gifs
-	camera.vflip = True
-	camera.hflip = True
-	camera.saturation = 0
-	camera.start_preview()
-	i=1 #iterate the blink of the light in prep, also gives a little time for the camera to warm up
-	while i < prep_delay :
-	  GPIO.output(led1_pin,True); sleep(.5)
-	  GPIO.output(led1_pin,False); sleep(.5); i+=1
-	################################# Begin Step 2 #################################
-	print "Taking pics"
-	now = time.strftime("%d" + "." + "%m" + "." + "%Y" + "," + "%H" + ":" + "%M" + ":" + "%S") #get the current date and time for the start of the filename
-	try: #take the photos
-		for i, filename in enumerate(camera.capture_continuous(file_path + now + '-' + '{counter:02d}.jpg')):
-			GPIO.output(led2_pin,True) #turn on the LED
-			print(filename)
-			sleep(0.25) #pause the LED on for just a bit
-			GPIO.output(led2_pin,False) #turn off the LED
-			sleep(capture_delay) # pause in-between shots
-			if i == total_pics-1:
-				break
-	finally:
-		camera.stop_preview()
-		camera.close()
-	########################### Begin Step 3 #################################
-	print "Creating an animated gif"
-	GPIO.output(led3_pin,True) #turn on the LED
-	graphicsmagick = "gm convert -delay " + str(gif_delay) + " " + file_path + now + "*.jpg " + file_path + now + ".gif"
-	os.system(graphicsmagick) #make the .gif
-	print "Uploading to tumblr. Please check " + tumblr_blog + " soon."
-	connected = is_connected() #check to see if you have an internet connection
-	while connected:
-		try:
-			msg = MIMEMultipart()
-			msg['Subject'] = now
-			msg['From'] = addr_from
-			msg['To'] = addr_to
-			file_to_upload = file_path + now + ".gif"
-			fp = open(file_to_upload, 'rb')
-			part = MIMEBase('image', 'gif')
-			part.set_payload( fp.read() )
-			Encoders.encode_base64(part)
-			part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_path))
-			fp.close()
-			msg.attach(part)
-			server = smtplib.SMTP('smtp.gmail.com:587')
-			server.starttls()
-			server.login(user_name, password)
-			server.sendmail(msg['From'], msg['To'], msg.as_string())
-			server.quit()
-			break
-		except ValueError:
-			print "Oops. No internect connection. Upload later."
-			try: #make a text file as a note to upload the .gif later
-				file = open(file_path + now + "-FILENOTUPLOADED.txt",'w')   # Trying to create a new file or open one
-				file.close()
-			except:
-				print('Something went wrong. Could not write file.')
-				sys.exit(0) # quit Python
-	GPIO.output(led3_pin,False) #turn off the LED
-	########################### Begin Step 4 #################################
-	GPIO.output(led4_pin,True) #turn on the LED
-	try:
-		display_pics(now)
-	except Exception, e:
-		tb = sys.exc_info()[2]
-		traceback.print_exception(e.__class__, e, tb)
-	pygame.quit()
-	print "Done"
-	GPIO.output(led4_pin,False) #turn off the LED
+    ################################# Begin Step 1 #################################
+    print "Get Ready"
+    camera = picamera.PiCamera()
+    camera.resolution = (500, 375) #use a smaller size to process faster, and tumblr will only take up to 500 pixels wide for animated gifs
+    camera.vflip = True
+    camera.hflip = True
+    camera.saturation = 0
+    camera.start_preview()
+    i=1 #iterate the blink of the light in prep, also gives a little time for the camera to warm up
+    while i < prep_delay :
+      GPIO.output(led1_pin,True); sleep(.5)
+      GPIO.output(led1_pin,False); sleep(.5); i+=1
+    ################################# Begin Step 2 #################################
+    print "Taking pics"
+    now = time.strftime("%d" + "." + "%m" + "." + "%Y" + "," + "%H" + ":" + "%M" + ":" + "%S") #get the current date and time for the start of the filename
+    try: #take the photos
+        for i, filename in enumerate(camera.capture_continuous(file_path + now + '-' + '{counter:02d}.jpg')):
+            GPIO.output(led2_pin,True) #turn on the LED
+            print(filename)
+            sleep(0.25) #pause the LED on for just a bit
+            GPIO.output(led2_pin,False) #turn off the LED
+            sleep(capture_delay) # pause in-between shots
+            if i == total_pics-1:
+                break
+    finally:
+        camera.stop_preview()
+        camera.close()
+    ########################### Begin Step 3 #################################
+    print "Creating an animated gif"
+    GPIO.output(led3_pin,True) #turn on the LED
+    graphicsmagick = "gm convert -delay " + str(gif_delay) + " " + file_path + now + "*.jpg " + file_path + now + ".gif"
+    os.system(graphicsmagick) #make the .gif
+    print "Uploading to tumblr. Please check " + tumblr_blog + " soon."
+    connected = is_connected() #check to see if you have an internet connection
+    while connected:
+        try:
+            msg = MIMEMultipart()
+            msg['Subject'] = now
+            msg['From'] = addr_from
+            msg['To'] = addr_to
+            file_to_upload = file_path + now + ".gif"
+            fp = open(file_to_upload, 'rb')
+            part = MIMEBase('image', 'gif')
+            part.set_payload( fp.read() )
+            Encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(file_path))
+            fp.close()
+            msg.attach(part)
+            server = smtplib.SMTP('smtp.gmail.com:587')
+            server.starttls()
+            server.login(user_name, password)
+            server.sendmail(msg['From'], msg['To'], msg.as_string())
+            server.quit()
+            break
+        except ValueError:
+            print "Oops. No internect connection. Upload later."
+            try: #make a text file as a note to upload the .gif later
+                file = open(file_path + now + "-FILENOTUPLOADED.txt",'w')   # Trying to create a new file or open one
+                file.close()
+            except:
+                print('Something went wrong. Could not write file.')
+                sys.exit(0) # quit Python
+    GPIO.output(led3_pin,False) #turn off the LED
+    ########################### Begin Step 4 #################################
+    GPIO.output(led4_pin,True) #turn on the LED
+    try:
+        display_pics(now)
+    except Exception, e:
+        tb = sys.exc_info()[2]
+        traceback.print_exception(e.__class__, e, tb)
+    pygame.quit()
+    print "Done"
+    GPIO.output(led4_pin,False) #turn off the LED
 
 ####################
 ### Main Program ###
@@ -229,6 +229,6 @@ GPIO.output(led4_pin,False);
 
 # wait for the big button to be pressed
 while True:
-	GPIO.wait_for_edge(button1_pin, GPIO.FALLING)
-	time.sleep(0.2) #debounce
-	start_photobooth()
+    GPIO.wait_for_edge(button1_pin, GPIO.FALLING)
+    time.sleep(0.2) #debounce
+    start_photobooth()
